@@ -105,11 +105,23 @@ module MtGox
     # Fetch recent trades
     #
     # @authenticated false
+    # @param arg Get all trades since this trade. May be a Trade object or an integer (Trade#id). If nil, will fetch all trades.
     # @return [Array<MtGox::Trade>] an array of trades, sorted in chronological order
     # @example
     #   MtGox.trades
-    def trades
-      get("/api/1/BTC#{MtGox.currency}/public/trades?raw").sort_by{|trade| trade['date']}.map do |trade|
+    def trades(arg=nil)
+      since = case arg
+	when NilClass
+	  {}
+	when Trade
+	  {:since => arg.id}
+	when Numeric
+	  {:since => arg}
+	else
+	  raise Exception.new("Invalid argument, #{arg.class}")
+      end 
+
+      get("/api/1/BTC#{MtGox.currency}/public/trades?raw", since).sort_by{|trade| trade['date']}.map do |trade|
         Trade.new(trade)
       end
     end
@@ -218,7 +230,7 @@ module MtGox
     # Added by Mikael Wikman (will document it later)
     def cancel(arg)
       (oid = arg.is_a?(Order) ? arg.id : id).kind_of?(String) or raise("Could not find valid order id")
-      parse_orders(post('/code/cancelOrder.php', pass_params.merge({oid: oid}))['orders'])
+      parse_orders(post('/code/cancelOrder.php', pass_params.merge({:oid => oid}))['orders'])
     end
 
     # Transfer bitcoins from your Mt. Gox account into another account
