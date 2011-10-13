@@ -25,33 +25,33 @@ module MtGox
     # @example
     #   MtGox.ticker
     def ticker
-      ticker = get('/code/data/ticker.php')['ticker']
-      Ticker.instance.buy    = ticker['buy'].to_f
-      Ticker.instance.high   = ticker['high'].to_f
-      Ticker.instance.price  = ticker['last'].to_f
-      Ticker.instance.low    = ticker['low'].to_f
-      Ticker.instance.sell   = ticker['sell'].to_f
-      Ticker.instance.volume = ticker['vol'].to_f
+      ticker = get("/api/1/BTC#{MtGox.currency}/public/ticker")['return']
+      Ticker.instance.buy    = ticker['buy']['value'].to_f
+      Ticker.instance.high   = ticker['high']['value'].to_f
+      Ticker.instance.price  = ticker['last']['value'].to_f
+      Ticker.instance.low    = ticker['low']['value'].to_f
+      Ticker.instance.sell   = ticker['sell']['value'].to_f
+      Ticker.instance.volume = ticker['vol']['value'].to_f
       Ticker.instance
     end
 
     # Fetch both bids and asks in one call, for network efficiency
     #
     # @authenticated false
-    # @return [Hash] with keys :asks and :asks, which contain arrays as described in {MtGox::Client#asks} and {MtGox::Clients#bids}
+    # @return [Hash] with keys :asks and :bids, which contain arrays as described in {MtGox::Client#asks} and {MtGox::Clients#bids}
     # @example
     #   MtGox.offers
     def offers
-      offers = get('/code/data/getDepth.php')
+      offers = get("/api/1/BTC#{MtGox.currency}/public/depth?raw")
       asks = offers['asks'].sort_by do |ask|
         ask[0].to_f
       end.map! do |ask|
-        Ask.new(*ask)
+        Ask.new(ask)
       end
       bids = offers['bids'].sort_by do |bid|
         -bid[0].to_f
       end.map! do |bid|
-        Bid.new(*bid)
+        Bid.new(bid)
       end
       {:asks => asks, :bids => bids}
     end
@@ -109,7 +109,7 @@ module MtGox
     # @example
     #   MtGox.trades
     def trades
-      get('/code/data/getTrades.php').sort_by{|trade| trade['date']}.map do |trade|
+      get("/api/1/BTC#{MtGox.currency}/public/trades?raw").sort_by{|trade| trade['date']}.map do |trade|
         Trade.new(trade)
       end
     end
@@ -121,6 +121,7 @@ module MtGox
     # @example
     #   MtGox.balance
     def balance
+      # TODO: This will return balance only in USD.. Currently no way to do EUR?
       parse_balance(post('/code/getFunds.php', pass_params))
     end
 
@@ -231,7 +232,7 @@ module MtGox
     def parse_balance(balance)
       balances = []
       balances << Balance.new('BTC', balance['btcs'])
-      balances << Balance.new('USD', balance['usds'])
+      balances << Balance.new(MtGox.currency, balance[MtGox.currency.downcase+'s'])
       balances
     end
 

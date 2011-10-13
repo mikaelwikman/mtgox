@@ -8,6 +8,7 @@ module MtGox
       self.date   = Time.at(trade['date'].to_i)
       self.amount = trade['amount'].to_f
       self.price  = trade['price'].to_f
+      self.price_currency = trade['price_currency']
     end
   end
 end

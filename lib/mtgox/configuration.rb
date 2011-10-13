@@ -7,6 +7,7 @@ module MtGox
       :commission,
       :password,
       :username,
+      :currency
     ]
 
     DEFAULT_COMMISSION = 0.0065.freeze
@@ -21,6 +22,7 @@ module MtGox
     # Convenience method to allow configuration options to be set in a block
     def configure
       yield self
+      self.currency.upcase!
     end
 
     # Create a hash of options and their values
@@ -35,6 +37,7 @@ module MtGox
       self.commission = DEFAULT_COMMISSION
       self.password   = nil
       self.username   = nil
+      self.currency   = "USD"
       self
     end
   end
