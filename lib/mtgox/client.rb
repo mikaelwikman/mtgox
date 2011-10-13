@@ -198,20 +198,27 @@ module MtGox
     #     my_order = MtGox.orders.first
     #     MtGox.cancel my_order
     #     MtGox.cancel {'oid' => '1234567890', 'type' => 2}
-    def cancel(args)
-      if args.is_a?(Hash)
-        order = args.delete_if{|k, v| !['oid', 'type'].include?(k.to_s)}
-        parse_orders(post('/code/cancelOrder.php', pass_params.merge(order))['orders'])
-      else
-        orders = post('/code/getOrders.php', pass_params)['orders']
-        order = orders.find{|order| order['oid'] == args.to_s}
-        if order
-          order = order.delete_if{|k, v| !['oid', 'type'].include?(k.to_s)}
-          parse_orders(post('/code/cancelOrder.php', pass_params.merge(order))['orders'])
-        else
-          raise Faraday::Error::ResourceNotFound, {:status => 404, :headers => {}, :body => 'Order not found.'}
-        end
-      end
+    # This appears to be all wrong? Firstly, orders are not Hash objects, and secondly, they don't have OID, but ID // Mikael Wikman
+    #def cancel(args)
+    #  if args.is_a?(Hash)
+    #    order = args.delete_if{|k, v| !['oid', 'type'].include?(k.to_s)}
+    #    parse_orders(post('/code/cancelOrder.php', pass_params.merge(order))['orders'])
+    #  else
+    #    orders = post('/code/getOrders.php', pass_params)['orders']
+    #    order = orders.find{|order| order['oid'] == args.to_s}
+    #    if order
+    #      order = order.delete_if{|k, v| !['oid', 'type'].include?(k.to_s)}
+    #      parse_orders(post('/code/cancelOrder.php', pass_params.merge(order))['orders'])
+    #    else
+    #      raise Faraday::Error::ResourceNotFound, {:status => 404, :headers => {}, :body => 'Order not found.'}
+    #    end
+    #  end
+    #end
+
+    # Added by Mikael Wikman (will document it later)
+    def cancel(arg)
+      (oid = arg.is_a?(Order) ? arg.id : id).kind_of?(String) or raise("Could not find valid order id")
+      parse_orders(post('/code/cancelOrder.php', pass_params.merge({oid: oid}))['orders'])
     end
 
     # Transfer bitcoins from your Mt. Gox account into another account
