@@ -133,8 +133,11 @@ module MtGox
     # @example
     #   MtGox.balance
     def balance
-      # TODO: This will return balance only in USD.. Currently no way to do EUR?
-      parse_balance(post('/code/getFunds.php', pass_params))
+      info = post('/code/info.php', pass_params)
+
+      info['Wallets'].values.map{|v| v['Balance']}.map do |balance_info|
+	Balance.new(balance_info['currency'], balance_info['value'])
+      end
     end
 
     # Fetch your open orders, both buys and sells, for network efficiency
