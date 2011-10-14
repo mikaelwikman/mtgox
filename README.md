@@ -1,6 +1,5 @@
 # Ruby wrapper for the Mt. Gox Trade API
-Mt. Gox allows you to trade US Dollars (USD) for Bitcoins (BTC) or Bitcoins for
-US Dollars.
+Mt. Gox allows you to trade traditional currencies for Bitcoins (BTC) and Bitcoins for traditional currencies.
 
 ## <a name="installation">Installation</a>
     gem install mtgox
@@ -36,6 +35,10 @@ author, which you can do using the following script:
     require 'rubygems'
     require 'mtgox'
 
+    MtGox.configure do |config|
+      config.currency = "USD"
+    end
+
     # Fetch the latest price for 1 BTC in USD
     puts MtGox.ticker.sell
 
@@ -54,7 +57,7 @@ author, which you can do using the following script:
       config.password = YOUR_MTGOX_PASSWORD
     end
 
-    # Fetch your current balance
+    # Fetch the current balance of each wallet
     puts MtGox.balance
 
     # Place a limit order to buy one bitcoin for $0.011
