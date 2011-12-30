@@ -111,15 +111,15 @@ module MtGox
     #   MtGox.trades
     def trades(arg=nil)
       since = case arg
-	when NilClass
-	  {}
-	when Trade
-	  {:since => arg.id}
-	when Numeric
-	  {:since => arg}
-	else
-	  raise Exception.new("Invalid argument, #{arg.class}")
-      end 
+        when NilClass
+          {}
+        when Trade
+          {:since => arg.id}
+        when Numeric
+          {:since => arg}
+        else
+          raise Exception.new("Invalid argument, #{arg.class}")
+        end 
 
       get("/api/1/BTC#{MtGox.currency}/public/trades?raw", since).sort_by{|trade| trade['date']}.map do |trade|
         Trade.new(trade)
@@ -180,7 +180,7 @@ module MtGox
     #   # Buy one bitcoin for $0.011
     #   MtGox.buy! 1.0, 0.011
     def buy!(amount, price)
-      parse_orders(post('/code/buyBTC.php', pass_params.merge({:amount => amount, :price => price}))['orders'])
+      parse_orders(post('/code/buyBTC.php', pass_params.merge({:amount => amount, :price => price, :Currency => MtGox.currency}))['orders'])
     end
 
     # Place a limit order to sell BTC
@@ -193,7 +193,7 @@ module MtGox
     #   # Sell one bitcoin for $100
     #   MtGox.sell! 1.0, 100.0
     def sell!(amount, price)
-      parse_orders(post('/code/sellBTC.php', pass_params.merge({:amount => amount, :price => price}))['orders'])
+      parse_orders(post('/code/sellBTC.php', pass_params.merge({:amount => amount, :price => price, :Currency => MtGox.currency}))['orders'])
     end
 
     # Cancel an open order
